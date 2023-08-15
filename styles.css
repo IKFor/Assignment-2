@@ -1,0 +1,14 @@
+body {
+    display: flex;
+    justify-content: center;
+    background-color: rgb(34, 147, 196);
+}
+
+#canvas {
+    border: 8px solid rgb(38, 118, 119);
+}
+
+@font-face {
+    font-family: CustomFont;
+    src: url("/assets/fonts/FlappyBirdy.ttf");
+}
