@@ -96,6 +96,7 @@ class ClickHandler {
     this.mouse = mouse;
     this.keybourd = keybourd;
     this.touchScreen = touchScreen;
+    console.log("Mouse Added");
   }
 
   wasInteracted() {
@@ -142,7 +143,7 @@ function create ()
 
   this.cursors = this.input.keyboard.createCursorKeys();
   this.pointer = this.input.activePointer;
-  this.mobilePointer = this.input.addPointer();
+  this.mobilePointer = this.input.pointer1;
 
   this.ui = new UI(this.score, this.add);
   this.clickHandler = new ClickHandler(this.pointer, this.cursors, this.mobilePointer);
