@@ -96,7 +96,6 @@ class ClickHandler {
     this.mouse = mouse;
     this.keybourd = keybourd;
     this.pointer = pointer;
-    console.log("Mouse Added");
   }
 
   wasInteracted() {
