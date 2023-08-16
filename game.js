@@ -92,15 +92,15 @@ class UI {
 }
 
 class ClickHandler {
-  constructor(mouse, keybourd, touchScreen) {
+  constructor(mouse, keybourd, pointer) {
     this.mouse = mouse;
     this.keybourd = keybourd;
-    this.touchScreen = touchScreen;
+    this.pointer = pointer;
     console.log("Mouse Added");
   }
 
   wasInteracted() {
-    return this.keybourd.space.isDown || this.mouse.isDown || this.touchScreen[0].isDown;
+    return this.keybourd.space.isDown || this.mouse.isDown || this.pointer.isDown;
   }
 }
 
