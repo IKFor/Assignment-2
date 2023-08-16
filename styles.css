@@ -10,5 +10,5 @@ body {
 
 @font-face {
     font-family: CustomFont;
-    src: url("/assets/fonts/FlappyBirdy.ttf");
+    src: url("./assets/fonts/FlappyBirdy.ttf");
 }

@@ -41,7 +41,7 @@ const config = {
 };
 const game = new Phaser.Game(config);
 
-class ui {
+class UI {
   constructor(group, add) {
     this.group = group;
     this.groupObjects = group.children.entries;
@@ -91,6 +91,18 @@ class ui {
   }
 }
 
+class ClickHandler {
+  constructor(mouse, keybourd, touchScreen) {
+    this.mouse = mouse;
+    this.keybourd = keybourd;
+    this.touchScreen = touchScreen;
+  }
+
+  wasInteracted() {
+    return this.keybourd.space.isDown || this.mouse.isDown || this.touchScreen[0].isDown;
+  }
+}
+
 function preload ()
 {
   this.load.image("sky", "assets/images/background-day.png");
@@ -128,7 +140,12 @@ function create ()
   this.passColliders = this.add.group();
   this.score = this.add.group();
 
-  this.ui = new ui(this.score, this.add);
+  this.cursors = this.input.keyboard.createCursorKeys();
+  this.pointer = this.input.activePointer;
+  this.mobilePointer = this.input.addPointer();
+
+  this.ui = new UI(this.score, this.add);
+  this.clickHandler = new ClickHandler(this.pointer, this.cursors, this.mobilePointer);
 
   const base1 = this.physics.add.image(0, 400, "base").setOrigin(0, 0).setImmovable(true);
   const base2 = this.physics.add.image(336, 400, "base").setOrigin(0, 0).setImmovable(true);
@@ -144,9 +161,6 @@ function create ()
 
   this.bird = this.physics.add.sprite(144, 256, "bird2");
   this.bird.depth = 1;
-
-  this.cursors = this.input.keyboard.createCursorKeys();
-  this.pointer = this.input.activePointer;
 
   this.physics.add.collider(this.bird, this.wall);
   this.physics.add.collider(this.bird, this.bases, die, null, this);
@@ -320,11 +334,10 @@ function update ()
     return;
   }
 
-  if((this.cursors.space.isDown || this.pointer.isDown) !== isPressed && !isPressed) {
-    console.log("DDD");
+  if(this.clickHandler.wasInteracted() !== isPressed && !isPressed) {
     if (birdIsDead) {
       restartGame.call(this);
-      isPressed = this.cursors.space.isDown || this.pointer.isDown;
+      isPressed = this.clickHandler.wasInteracted();
       return;
     }
 
@@ -334,7 +347,7 @@ function update ()
     this.bird.setVelocityY(birdVelocity);
   } 
 
-  isPressed = this.cursors.space.isDown || this.pointer.isDown;
+  isPressed = this.clickHandler.wasInteracted() ;
 
   if (birdIsDead) {
     return;
