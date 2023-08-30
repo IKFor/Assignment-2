@@ -21,7 +21,7 @@ let gameSpeed = 150;
     physics: {
       default: "arcade",
       arcade: {
-          debug: true
+          debug: false
       }
     },
     scene: {
@@ -179,7 +179,7 @@ function create ()
   this.physics.add.overlap(this.bird, this.pipes, die, null, this);
 
   this.die = this.sound.add("die", { loop: false, volume: 0.5 });
-  this.flap = this.sound.add("flap", { loop: false, volume: 0.2  });
+  this.flap = this.sound.add("flap", { loop: false, volume: 0.18  });
   this.hit = this.sound.add("hit", { loop: false, volume: 0.5  });
   this.point = this.sound.add("point", { loop: false, volume: 0.5  });
 
@@ -216,7 +216,6 @@ function startGame() {
   gameIsActive = true;
 
   this.createPipesInterval = setInterval(() => {
-    // createPipes.call(this);
     createPipes(this.pipes, this.passColliders, distanceBetween, gameSpeed, this.physics.add)
   }, 1500)
 
