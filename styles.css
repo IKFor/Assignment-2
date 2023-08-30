@@ -6,6 +6,12 @@ body {
 
 #canvas {
     border: 8px solid rgb(38, 118, 119);
+    display: block;
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 @font-face {

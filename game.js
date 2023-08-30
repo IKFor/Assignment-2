@@ -1,45 +1,51 @@
 "use strict";
 
+import { createPipes, updatePipes, deletePipes, stopPipes, } from "./pipesFunctions.js";
+import { width, height } from "./properties.js"
+
 let isPressed = false;
 let gameIsActive = false;
 let birdIsDead = false;
 let score = 0;
 let maxScore = 0;
-let distanceBetween = 90;
+let distanceBetween = 95;
 let birdVelocity = -250;
 let birdGravity = 800;
 let gameSpeed = 150;
 
-const maxHeight = 50; 
-const minHeight = 360;
-const height = 512;
-const width = 288;
-
-const canvas = document.createElement("canvas");
-
-canvas.id = "canvas";
-canvas.style = "";
-
-document.body.appendChild(canvas);
-
-const config = {
-  type: Phaser.AUTO,
-  width: width,
-  height: height,
-  canvas: canvas,
-  physics: {
-    default: "arcade",
-    arcade: {
-        debug: false
+(() => {
+  const config = {
+    type: Phaser.AUTO,
+    width: width,
+    height: height,
+    physics: {
+      default: "arcade",
+      arcade: {
+          debug: true
+      }
+    },
+    scene: {
+        preload: preload,
+        create: create,
+        update: update
     }
-  },
-  scene: {
-      preload: preload,
-      create: create,
-      update: update
+  };
+  
+  const game = new Phaser.Game(config);
+  
+  const canvas = document.querySelector("canvas");
+  canvas.id = "canvas";
+  
+  window.addEventListener("resize", resize, false);
+  resize();
+
+  function resize () {
+    let scale = window.innerWidth / width > window.innerHeight / height ? window.innerHeight / height : window.innerWidth / width;
+    scale = scale <= 1.5 ? scale : 1.5;
+    scale *= 0.8;
+    canvas.style = `width: ${width * scale}px; height: ${height * scale}px;`;
   }
-};
-const game = new Phaser.Game(config);
+})();
 
 class UI {
   constructor(group, add) {
@@ -118,6 +124,11 @@ function preload ()
   for (let i = 0; i <= 9; i++) {
     this.load.image(`${i}`, `assets/images/${i}.png`)
   }
+
+  this.load.audio("die", ["assets/sounds/die.mp3"]);
+  this.load.audio("flap", ["assets/sounds/flap.mp3"]);
+  this.load.audio("hit", ["assets/sounds/hit.mp3"]);
+  this.load.audio("point", ["assets/sounds/point.mp3"]);
 }
 
 function create ()
@@ -167,6 +178,11 @@ function create ()
   this.physics.add.overlap(this.bird, this.passColliders, passPipes, null, this);
   this.physics.add.overlap(this.bird, this.pipes, die, null, this);
 
+  this.die = this.sound.add("die", { loop: false, volume: 0.5 });
+  this.flap = this.sound.add("flap", { loop: false, volume: 0.2  });
+  this.hit = this.sound.add("hit", { loop: false, volume: 0.5  });
+  this.point = this.sound.add("point", { loop: false, volume: 0.5  });
+
   restartGame.call(this);
 }
 
@@ -176,14 +192,6 @@ function updateBases(bases) {
   } else if (bases[1].x <= -336) {
     bases[1].x = bases[0].x + 336;
   }
-}
-
-function updatePipes(pipes) {
-  pipes.forEach(pipe => {
-    if(pipe.x <= -100){
-      pipe.destroy();
-    }
-  })
 }
 
 function updateBird(bird) {
@@ -208,7 +216,8 @@ function startGame() {
   gameIsActive = true;
 
   this.createPipesInterval = setInterval(() => {
-    createPipes.call(this);
+    // createPipes.call(this);
+    createPipes(this.pipes, this.passColliders, distanceBetween, gameSpeed, this.physics.add)
   }, 1500)
 
   this.startMessage.destroy();
@@ -221,6 +230,7 @@ function passPipes (bird, collider) {
   if(!collider.wasPassed){
     collider.destroy();
     score++;
+    this.point.play();
     this.ui.showScore(score);
   }
 }
@@ -250,28 +260,13 @@ function restartGame() {
   this.startMessage.depth = 6;
 }
 
-function createPipes() {
-  const position = minHeight - Math.floor(Math.random() * (minHeight - maxHeight - distanceBetween));
-  const bottomPipe = this.physics.add.image(320, position, "pipe").setOrigin(0.5, 0).setImmovable(true).setVelocityX(-gameSpeed);
-  const topPipe = this.physics.add.image(320, position - distanceBetween, "pipe").setOrigin(0.5, 1).setImmovable(true).setFlipY(true).setVelocityX(-gameSpeed);
-
-  //зони не рухаються. setOrigin тут не працює. Якщо є інші варіанти спробувати їх
-  const passCollider = this.physics.add.image(320, position - 0.5 * distanceBetween).setSize(25, distanceBetween).setImmovable(true).setVelocityX(-gameSpeed);
-  passCollider.wasPassed = false;
-
-  bottomPipe.depth = 0;
-  this.pipes.add(bottomPipe);
-  this.pipes.add(topPipe);
-  this.passColliders.add(passCollider);
-
-}
-
 function die() {
   if (!birdIsDead){
     console.log("die");
+    this.hit.play();
     
     birdIsDead = true;
-    gameIsActive = false
+    // gameIsActive = false
     setDivingAnimation(this.bird);
 
     this.fallAnimation = this.tweens.add({
@@ -289,7 +284,7 @@ function die() {
     maxScore = maxScore < score ? score : maxScore;
     this.ui.showScorePanel(score, maxScore);
 
-    // setTimeout(() => gameIsActive = false, 500)
+    setTimeout(() => gameIsActive = false, 200)
   }
 }
 
@@ -310,22 +305,15 @@ function stopBases(bases) {
   });
 }
 
-function stopPipes(pipes) {
-  pipes.forEach(pipe => {
-    pipe.setVelocity(0, 0);
-  });
-}
-
-function deletePipes(pipes) {
-  while (pipes.length > 0) {
-    pipes[0].destroy();
-  }
-}
-
 function startBases(bases) {
   bases.forEach(base => {
     base.setVelocityX(-gameSpeed);
   });
+}
+
+function flap() {
+  this.bird.setVelocityY(birdVelocity);
+  this.flap.play();
 }
 
 function update ()
@@ -344,7 +332,7 @@ function update ()
     if (!gameIsActive) {
       startGame.call(this);
     }
-    this.bird.setVelocityY(birdVelocity);
+    flap.call(this);
   } 
 
   isPressed = this.clickHandler.wasInteracted() ;
